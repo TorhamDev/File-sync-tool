@@ -1,21 +1,14 @@
-from enum import Enum
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import Enum as SqlEnum
 
+from consts import PlatfromsTypeEnum
 from database.db import Base
-
-
-class SyncTypeEnum(Enum):
-    TELEGRAM = "Telegram"
-    GITHUB = "Github"
-    GDRIVE = "GoogleDrive"
 
 
 class BaseInfo(Base):
     __tablename__ = "base_info"
     info_id = Column(Integer, primary_key=True)
-    sync_type = Column(SqlEnum(SyncTypeEnum), nullable=False)
+    sync_type = Column(SqlEnum(PlatfromsTypeEnum), nullable=False)
 
 
 class TelegramInfo(Base):
