@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 Base = declarative_base()
 
-engine = create_engine("sqlite:///myfile.db")
+engine = create_engine("sqlite:///myfile.db", isolation_level="AUTOCOMMIT")
+
 
 def get_db():
     with Session(bind=engine) as session:
