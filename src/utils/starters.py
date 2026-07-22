@@ -1,3 +1,5 @@
+from typing import Callable
+
 from consts import TELEGRAM_BOT_TOKEN_REGEX, PlatfromsTypeEnum
 from utils.validations import regex_validation
 
@@ -9,6 +11,12 @@ def telegram_starter() -> tuple[str, str]:
             continue
         channel_id = input("Enter Your Telegram Channel ID: ")
         return bot_token, channel_id
+
+
+def github_start(): ...
+
+
+def gdrive_starter(): ...
 
 
 def select_platfrom() -> str:
@@ -28,3 +36,13 @@ def select_platfrom() -> str:
             print(f"Please Enter a valid number (0-{len(platforms) - 1})")
         except IndexError:
             print(f"please select from  (0-{len(platforms) - 1})")
+
+
+def get_platfrom_starter(name: str) -> Callable:
+    platfroms_map = {
+        PlatfromsTypeEnum.TELEGRAM.value: telegram_starter,
+        PlatfromsTypeEnum.GITHUB.value: github_start,
+        PlatfromsTypeEnum.GDRIVE.value: gdrive_starter,
+    }
+
+    return platfroms_map[name]
