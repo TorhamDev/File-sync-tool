@@ -9,7 +9,7 @@ class BaseInfo(Base):
     __tablename__ = "base_info"
     id = Column(Integer, primary_key=True)
     sync_type = Column(SqlEnum(PlatfromsTypeEnum), nullable=False)
-
+    sync_dir = Column(String, nullable=False)
 
 class TelegramInfo(Base):
     __tablename__ = "telegram_info"
