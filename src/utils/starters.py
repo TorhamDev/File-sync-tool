@@ -1,22 +1,9 @@
 from typing import Callable
 
-from consts import TELEGRAM_BOT_TOKEN_REGEX, PlatfromsTypeEnum
-from utils.validations import regex_validation
-
-
-def telegram_starter() -> tuple[str, str]:
-    while True:
-        bot_token = input("Enter Your Bot Token: ")
-        if not regex_validation(pattern=TELEGRAM_BOT_TOKEN_REGEX, string=bot_token):
-            continue
-        channel_id = input("Enter Your Telegram Channel ID: ")
-        return bot_token, channel_id
-
-
-def github_start(): ...
-
-
-def gdrive_starter(): ...
+from consts import PlatfromsTypeEnum
+from platforms.gdrive import gdrive_starter
+from platforms.github import github_starter
+from platforms.telegram import telegram_starter
 
 
 def select_platfrom() -> str:
@@ -41,7 +28,7 @@ def select_platfrom() -> str:
 def get_platfrom_starter(name: str) -> Callable:
     platfroms_map = {
         PlatfromsTypeEnum.TELEGRAM.value: telegram_starter,
-        PlatfromsTypeEnum.GITHUB.value: github_start,
+        PlatfromsTypeEnum.GITHUB.value: github_starter,
         PlatfromsTypeEnum.GDRIVE.value: gdrive_starter,
     }
 
