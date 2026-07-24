@@ -14,7 +14,7 @@ class BasePlatfrom(ABC):
 
     def last_sync_details(self) -> dict: ...
 
-    def compress(self) -> tuple[bool, str | None]:
+    def compress(self) -> tuple[bool, str]:
         filename = "backup"
         try:
             archive = shutil.make_archive(
@@ -23,6 +23,6 @@ class BasePlatfrom(ABC):
                 root_dir=self.target_dir,  # Compresses this
             )
         except FileNotFoundError:
-            return (False, None)
+            return (False, "N/A")
 
         return (True, archive)

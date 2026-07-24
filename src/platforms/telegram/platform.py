@@ -1,4 +1,5 @@
-from src.platforms.base import BasePlatfrom
+from platforms.base import BasePlatfrom
+from platforms.telegram.uploader import upload_file_to_channel
 
 
 class TelegramPlatfrom(BasePlatfrom):
@@ -10,14 +11,18 @@ class TelegramPlatfrom(BasePlatfrom):
         backup_temp_dir: str,
     ) -> None:
         super().__init__(target_dir, backup_temp_dir)
-        self.bot_token = (bot_token,)
+        self.bot_token = bot_token
         self.channel_id = channel_id
 
     def upload(self) -> bool:
-        is_success, archive = self.compress()
+        is_success, archive_path = self.compress()
 
         if is_success:
-            # upload it into telegram channel
+            upload_file_to_channel(
+                file_path=archive_path,
+                bot_token=self.bot_token,
+                chat_id=self.channel_id,
+            )
 
             return True
 

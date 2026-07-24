@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from consts import PlatfromsTypeEnum
 from platforms.gdrive import gdrive_starter
