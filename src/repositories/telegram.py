@@ -7,6 +7,10 @@ class TelegramRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
+
+    def get_last(self) -> TelegramInfo | None:
+        return self.session.query(TelegramInfo).order_by(TelegramInfo.id.desc()).first()
+
     def get_telegram_info_by_channel_id(self, channel_id: str) -> TelegramInfo:
         query = self.session.query(TelegramInfo).where(
             TelegramInfo.channel_id == channel_id
