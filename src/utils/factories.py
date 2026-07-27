@@ -1,11 +1,12 @@
 from consts import PlatfromsTypeEnum
 from database.db import get_db
+from platforms.base import BasePlatfrom
 from platforms.telegram.platform import TelegramPlatfrom
 from repositories.base_info import BaseInfoRepository
 from repositories.telegram import TelegramRepository
+import os
 
-
-def get_platfrom_handler(platfrom: str):
+def get_platfrom_handler(platfrom: PlatfromsTypeEnum) -> BasePlatfrom:
     print(type(platfrom))
     repo_map = {PlatfromsTypeEnum.TELEGRAM: TelegramRepository(get_db())}
     base_info = BaseInfoRepository(get_db()).get_last()
@@ -22,7 +23,7 @@ def get_platfrom_handler(platfrom: str):
             bot_token=str(platfrom_data.token),
             channel_id=str(platfrom_data.channel_id),
             target_dir=str(base_info.sync_dir),
-            backup_temp_dir="/home/torham/Document/",
+            backup_temp_dir=os.path.expanduser("~"),
         )
     }
 
