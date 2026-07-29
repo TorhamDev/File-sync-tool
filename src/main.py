@@ -1,4 +1,5 @@
 import time
+from threading import Timer
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -22,45 +23,50 @@ def upload_handler(sync_type, event_type, file_path):
 
 
 class DirectoryHandler(FileSystemEventHandler):
-    def __init__(self, sync_type, observer, target_dir) -> None:
+    def __init__(self, sync_type, observer, target_dir, wait_seconds=120) -> None:
         super().__init__()
         self.sync_type = sync_type
         self.observer = observer
         self.target_dir = target_dir
-        self.last_run = 0
-        self.cooldown = 30  # Seconds to ignore rapid repeated triggers
+        self.wait_seconds = wait_seconds  # 2 minutes = 120 seconds
+        self._timer = None
 
     def process_event(self, event):
         if event.is_directory:
             return
 
-        # Ignore hidden files, temporary files, or database files if stored nearby
+        # Filter out temp/system files
         if event.src_path.endswith((".tmp", ".db", ".DS_Store", ".git")):
             return
 
-        # Simple debounce check
-        current_time = time.time()
-        print(f"{current_time} - {self.last_run} < {self.cooldown} ==> {current_time - self.last_run}")
-        if current_time - self.last_run < self.cooldown:
-            print("did not fit the time so return!")
-            return
+        print(f"Change detected: {event.src_path}. Resetting 2-minute timer...")
 
-        self.last_run = current_time
+        # 1. Cancel the existing timer if a new event arrives before 2 mins pass
+        if self._timer:
+            self._timer.cancel()
 
-        print(f"Valid change detected: {event.src_path}. Pausing watcher...")
+        # 2. Schedule a new timer for 2 minutes from NOW
+        self._timer = Timer(
+            self.wait_seconds, self.trigger_upload, args=[event.src_path]
+        )
+        self._timer.start()
 
-        # 1. Temporarily unschedule watchdog so upload reads won't re-trigger events
+    def trigger_upload(self, file_path):
+        """Called ONLY after 2 minutes of complete silence."""
+        print(
+            f"\nNo changes detected for {self.wait_seconds} seconds. Starting upload..."
+        )
+
+        # Temporarily unschedule to prevent upload file-reads from triggering the watcher
         self.observer.unschedule_all()
 
         try:
-            upload_handler(self.sync_type, event.event_type, event.src_path)
+            upload_handler(self.sync_type, "debounced_modified", file_path)
         finally:
-            # 2. Wait a moment for file handles to close, then resume watching
-            time.sleep(1)
+            # Re-enable the listener
             self.observer.schedule(self, path=self.target_dir, recursive=True)
-            print("Resumed watching directory.")
+            print("Watcher resumed. Waiting for new changes...\n")
 
-    # Target specific actionable events instead of on_any_event
     def on_created(self, event):
         self.process_event(event)
 
