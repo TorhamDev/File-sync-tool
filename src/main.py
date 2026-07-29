@@ -13,7 +13,6 @@ base_info_repo = BaseInfoRepository(session=get_db())
 
 
 def upload_handler(sync_type, event_type, file_path):
-
     print(f"Triggered! Action: {event_type} on {file_path}")
 
     platfrom_handler = get_platfrom_handler(sync_type)
@@ -23,28 +22,66 @@ def upload_handler(sync_type, event_type, file_path):
 
 
 class DirectoryHandler(FileSystemEventHandler):
-    def __init__(self, sync_type) -> None:
+    def __init__(self, sync_type, observer, target_dir) -> None:
         super().__init__()
         self.sync_type = sync_type
+        self.observer = observer
+        self.target_dir = target_dir
+        self.last_run = 0
+        self.cooldown = 30  # Seconds to ignore rapid repeated triggers
 
-    def on_any_event(self, event):
+    def process_event(self, event):
         if event.is_directory:
             return
 
-        upload_handler(self.sync_type, event.event_type, event.src_path)
+        # Ignore hidden files, temporary files, or database files if stored nearby
+        if event.src_path.endswith((".tmp", ".db", ".DS_Store", ".git")):
+            return
+
+        # Simple debounce check
+        current_time = time.time()
+        print(f"{current_time} - {self.last_run} < {self.cooldown} ==> {current_time - self.last_run}")
+        if current_time - self.last_run < self.cooldown:
+            print("did not fit the time so return!")
+            return
+
+        self.last_run = current_time
+
+        print(f"Valid change detected: {event.src_path}. Pausing watcher...")
+
+        # 1. Temporarily unschedule watchdog so upload reads won't re-trigger events
+        self.observer.unschedule_all()
+
+        try:
+            upload_handler(self.sync_type, event.event_type, event.src_path)
+        finally:
+            # 2. Wait a moment for file handles to close, then resume watching
+            time.sleep(1)
+            self.observer.schedule(self, path=self.target_dir, recursive=True)
+            print("Resumed watching directory.")
+
+    # Target specific actionable events instead of on_any_event
+    def on_created(self, event):
+        self.process_event(event)
+
+    def on_modified(self, event):
+        self.process_event(event)
 
 
 def sync_loop():
     sync_info = base_info_repo.get_last()
     if not sync_info:
-        raise ValueError("Can't find any sync info. possible database malfunction.")
+        raise ValueError("Can't find any sync info. Possible database malfunction.")
 
     target_dir = str(sync_info.sync_dir)
     print(target_dir, ".........")
 
-    event_handler = DirectoryHandler(sync_type=sync_info.sync_type)
     observer = Observer()
 
+    # Pass the observer and target_dir into the handler so it can pause/resume
+    event_handler = DirectoryHandler(
+        sync_type=sync_info.sync_type, observer=observer, target_dir=target_dir
+    )
 
     observer.schedule(event_handler, path=target_dir, recursive=True)
 
@@ -59,10 +96,6 @@ def sync_loop():
         print("Stopped watcher.")
 
     observer.join()
-
-
-def my_custom_function(event_type, file_path):
-    print(f"Triggered! Action: {event_type} on {file_path}")
 
 
 if __name__ == "__main__":
