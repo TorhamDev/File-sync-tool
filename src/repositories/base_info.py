@@ -15,7 +15,16 @@ class BaseInfoRepository:
     def get_last(self) -> BaseInfo | None:
         return self.session.query(BaseInfo).order_by(BaseInfo.id.desc()).first()
 
-    def create_base_info(self, sync_type: PlatfromsTypeEnum, sync_dir: str) -> BaseInfo:
-        query = BaseInfo(sync_type=sync_type, sync_dir=sync_dir)
+    def create_base_info(
+        self,
+        sync_type: PlatfromsTypeEnum,
+        sync_dir: str,
+        sync_wait_time: int,
+    ) -> BaseInfo:
+        query = BaseInfo(
+            sync_type=sync_type,
+            sync_dir=sync_dir,
+            sync_wait_time=sync_wait_time,
+        )
         self.session.add(query)
         return self.get_last()

@@ -23,7 +23,13 @@ def upload_handler(sync_type, event_type, file_path):
 
 
 class DirectoryHandler(FileSystemEventHandler):
-    def __init__(self, sync_type, observer, target_dir, wait_seconds=120) -> None:
+    def __init__(
+        self,
+        sync_type,
+        observer,
+        target_dir,
+        wait_seconds,
+    ) -> None:
         super().__init__()
         self.sync_type = sync_type
         self.observer = observer
@@ -86,7 +92,10 @@ def sync_loop():
 
     # Pass the observer and target_dir into the handler so it can pause/resume
     event_handler = DirectoryHandler(
-        sync_type=sync_info.sync_type, observer=observer, target_dir=target_dir
+        sync_type=sync_info.sync_type,
+        observer=observer,
+        target_dir=target_dir,
+        wait_seconds=sync_info.sync_wait_time,
     )
 
     observer.schedule(event_handler, path=target_dir, recursive=True)
@@ -109,9 +118,11 @@ if __name__ == "__main__":
         platfrom = select_platfrom()
         platfrom_starter = get_platfrom_starter(platfrom)
         sync_dir = input("Enter Target dir you want to sync: ")
+        sync_wait_time = int(input("Enter the frequency of sync(in minutes e.g 20):"))
         base_info = base_info_repo.create_base_info(
             sync_type=PlatfromsTypeEnum(platfrom),
             sync_dir=sync_dir,
+            sync_wait_time=sync_wait_time,
         )
         platfrom_starter()
 
