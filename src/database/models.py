@@ -10,6 +10,7 @@ class BaseInfo(Base):
     id = Column(Integer, primary_key=True)
     sync_type = Column(SqlEnum(PlatfromsTypeEnum), nullable=False)
     sync_dir = Column(String, nullable=False)
+    sync_wait_time = Column(Integer, nullable=False, default=600) # in seconds
 
 class TelegramInfo(Base):
     __tablename__ = "telegram_info"
