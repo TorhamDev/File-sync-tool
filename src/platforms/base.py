@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 from abc import ABC
 
@@ -15,7 +16,7 @@ class BasePlatfrom(ABC):
     def last_sync_details(self) -> dict: ...
 
     def compress(self) -> tuple[bool, str]:
-        filename = "backup"
+        filename = pathlib.Path(self.target_dir).name
         try:
             archive = shutil.make_archive(
                 base_name=os.path.join(self.backup_temp_dir, filename),  # Saves it here

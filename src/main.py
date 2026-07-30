@@ -45,7 +45,7 @@ class DirectoryHandler(FileSystemEventHandler):
         if event.src_path.endswith((".tmp", ".db", ".DS_Store", ".git")):
             return
 
-        print(f"Change detected: {event.src_path}. Resetting 2-minute timer...")
+        print(f"Change detected: {event.src_path}. Resetting {self.wait_seconds}s timer...")
 
         # 1. Cancel the existing timer if a new event arrives before 2 mins pass
         if self._timer:
