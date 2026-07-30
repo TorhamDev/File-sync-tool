@@ -122,7 +122,7 @@ if __name__ == "__main__":
         base_info = base_info_repo.create_base_info(
             sync_type=PlatfromsTypeEnum(platfrom),
             sync_dir=sync_dir,
-            sync_wait_time=sync_wait_time,
+            sync_wait_time=sync_wait_time * 60,
         )
         platfrom_starter()
 
